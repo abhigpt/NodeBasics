@@ -3,13 +3,14 @@ var app     = express();
 var port    = process.env.PORT || 8080;
 var morgan  = require('morgan');
 var mongoose = require('mongoose');
-var User     = require('./app/models/user');
-console.log("the value of user is",User);
 var bodyParser = require('body-parser');
-app.use(bodyParser.urlencoded({ extended: false }))
-
+var router = express.Router();
+var appRoutes = require('./app/routes/api')(router);
+app.use(morgan('dev'));
+app.use(bodyParser.urlencoded({ extended: false }));
 // parse application/json
-app.use(bodyParser.json())
+app.use(bodyParser.json());
+app.use('/api',appRoutes);   // slash api is used to distinguish between frontend and backend routes here
 
 mongoose.connect('mongodb://localhost:27017/assignment', {useNewUrlParser: true}, function(err){
   if(err){
@@ -20,32 +21,9 @@ mongoose.connect('mongodb://localhost:27017/assignment', {useNewUrlParser: true}
   }
 });
 
-app.use(morgan('dev'));
 app.get('/home',function(req,res){
   console.log("hello from home");
 });
-app.post('/users',function(req,res){
-  console.log("caoll");
-  var user = new User();
-  console.log("the value of req body is",req.body);
-  user.username = req.body.username;
-  user.password = req.body.password;
-  user.email = req.body.email;
-  if(!req.body.username || !req.body.password || !req.body.email){
-    res.send("One of the fiels is missing");
-  }
-  else{
-    user.save(function(err){
-      if(err){
-        res.send(err);
-      }
-      else{
-        console.log("the user is created successfully");
-        res.send('the user is created successfully');
-      }
-    });
-  }
-})
 app.get('/', function(req, res){
   res.send('hello world');
 });
